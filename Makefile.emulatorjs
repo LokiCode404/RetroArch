@@ -222,6 +222,7 @@ endif
 
 ifeq ($(PROXY_TO_PTHREAD), 1)
 else ifeq ($(ASYNC), 1)
+else ifeq ($(USE_JSPI), 1)
 else
    DEFINES += -DEMSCRIPTEN_AUDIO_EXTERNAL_BLOCK
    ifeq ($(MIN_ASYNC), 1)
@@ -260,7 +261,13 @@ ifeq ($(WASM_WORKERS), 1)
    LDFLAGS += -s WASM_WORKERS=1
 endif
 
-ifeq ($(ASYNC), 1)
+ifeq ($(USE_JSPI), 1)
+   # JSPI: zero-overhead suspension via the JS Promise Integration proposal.
+   # No bytecode instrumentation — the VM handles stack switching natively.
+   # Supported in Chrome 123+, Firefox 132+, Edge 123+. Not in Safari.
+   DEFINES += -DEMSCRIPTEN_ASYNCIFY -DEMSCRIPTEN_JSPI
+   LDFLAGS += -s JSPI=1
+else ifeq ($(ASYNC), 1)
    DEFINES += -DEMSCRIPTEN_ASYNCIFY -DEMSCRIPTEN_FULL_ASYNCIFY
    LDFLAGS += -s ASYNCIFY=1 -s ASYNCIFY_STACK_SIZE=8192
    ifeq ($(DEBUG), 1)
